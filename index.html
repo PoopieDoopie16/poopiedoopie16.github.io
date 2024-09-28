@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Twitch Theater</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #121212;
+            color: white;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            flex-direction: column;
+        }
+        .twitch-embed {
+            width: 80%;
+            height: 60vh;
+            border: none;
+        }
+        .chat-box {
+            width: 80%;
+            height: 30vh;
+            border: none;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Input for changing the Twitch channel -->
+        <input type="text" id="channel-input" placeholder="Enter Twitch channel" />
+        <button onclick="loadChannel()">Load Channel</button>
+
+        <!-- Twitch Embed -->
+        <iframe id="twitch-embed"
+            src="https://player.twitch.tv/?channel=CHANNEL_NAME&parent=your-username.github.io"
+            frameborder="0"
+            allowfullscreen="true"
+            scrolling="no"
+            class="twitch-embed">
+        </iframe>
+
+        <!-- Twitch Chat -->
+        <iframe id="chat-embed"
+            src="https://www.twitch.tv/embed/CHANNEL_NAME/chat?parent=your-username.github.io"
+            frameborder="0"
+            scrolling="no"
+            class="chat-box">
+        </iframe>
+    </div>
+
+    <script>
+        function loadChannel() {
+            var channel = document.getElementById('channel-input').value;
+            if (channel) {
+                document.getElementById('twitch-embed').src = `https://player.twitch.tv/?channel=${channel}&parent=your-username.github.io`;
+                document.getElementById('chat-embed').src = `https://www.twitch.tv/embed/${channel}/chat?parent=your-username.github.io`;
+            }
+        }
+    </script>
+</body>
+</html>
