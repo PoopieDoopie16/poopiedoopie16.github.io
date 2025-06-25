@@ -1,21 +1,35 @@
 <!DOCTYPE html>
 <html>
+<head>
+  <meta charset="UTF-8" />
+  <title>OBS Page-Controlled Remote</title>
+</head>
 <body>
-  <h1>OBS Access Test</h1>
-  <button onclick="test()">Test Access</button>
+  <h2>Scene Controller (via OBS Browser Source)</h2>
+  <button onclick="switchScene('Scene 1')">Go to Scene 1</button>
+  <button onclick="switchScene('Scene 2')">Go to Scene 2</button>
+  <button onclick="toggleSource('Camera')">Toggle Camera Source</button>
 
   <script>
-    async function test() {
-      if (!window.obsstudio || !window.obsstudio.call) {
-        alert("❌ No OBS access. Check Page Permissions in Browser Source.");
-        return;
+    function switchScene(sceneName) {
+      if (typeof obsstudio !== 'undefined') {
+        obsstudio.setCurrentScene(sceneName);
+        console.log('Switching to scene:', sceneName);
+      } else {
+        alert("This must be run inside OBS as a browser source with control permissions.");
       }
+    }
 
-      try {
-        const version = await window.obsstudio.call("GetVersion");
-        alert("✅ Connected to OBS: " + version.obsVersion);
-      } catch (err) {
-        alert("❌ Failed to call OBS: " + err.message);
+    function toggleSource(sourceName) {
+      if (typeof obsstudio !== 'undefined') {
+        obsstudio.getSceneList().then(data => {
+          const currentScene = data.currentScene;
+          const source = currentScene.sources.find(s => s.name === sourceName);
+          if (source) {
+            obsstudio.setSourceVisibility(source.name, !source.render);
+            console.log('Toggling source:', source.name);
+          }
+        });
       }
     }
   </script>
