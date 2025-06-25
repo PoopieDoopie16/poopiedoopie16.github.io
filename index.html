@@ -2,27 +2,97 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>My YouTube Stream</title>
+  <title>OBS Control Panel</title>
   <style>
-    html, body {
-      margin: 0;
-      padding: 0;
-      height: 100%;
-      background-color: #000;
+    body {
+      font-family: sans-serif;
+      background-color: #121212;
+      color: white;
+      padding: 20px;
     }
-    iframe {
-      border: none;
-      width: 100vw;
-      height: 100vh;
+    button {
+      margin: 5px;
+      padding: 10px 15px;
+      font-size: 1rem;
+    }
+    select {
+      margin-right: 10px;
+      padding: 5px;
+      font-size: 1rem;
     }
   </style>
 </head>
 <body>
-  <iframe 
-    src="https://www.youtube.com/embed/nb1c07Q5VdM?autoplay=1&mute=1&playsinline=1"
-    allow="autoplay; encrypted-media"
-    allowfullscreen
-  ></iframe>
+  <h1>🎛️ OBS Control Panel</h1>
+
+  <div>
+    <label for="sceneSelect">Scenes:</label>
+    <select id="sceneSelect"></select>
+    <button onclick="switchScene()">Switch Scene</button>
+  </div>
+
+  <div style="margin-top:20px;">
+    <input type="text" id="sourceName" placeholder="Source Name" />
+    <button onclick="toggleSource()">Toggle Source Visibility</button>
+  </div>
+
+  <script>
+    async function callOBS(method, data = {}) {
+      if (!window.obsstudio || !window.obsstudio.call) {
+        alert("OBS control not available. Make sure this is running inside OBS with correct permissions.");
+        throw new Error("OBSStudio API not available.");
+      }
+
+      try {
+        return await window.obsstudio.call(method, data);
+      } catch (err) {
+        console.error("OBS API call error:", err);
+        alert("OBS call failed: " + err.message);
+      }
+    }
+
+    async function loadScenes() {
+      const res = await callOBS("GetSceneList");
+      const select = document.getElementById("sceneSelect");
+
+      res.scenes.forEach(scene => {
+        const option = document.createElement("option");
+        option.value = scene.sceneName;
+        option.textContent = scene.sceneName;
+        select.appendChild(option);
+      });
+    }
+
+    async function switchScene() {
+      const sceneName = document.getElementById("sceneSelect").value;
+      await callOBS("SetCurrentProgramScene", { sceneName });
+    }
+
+    async function toggleSource() {
+      const sourceName = document.getElementById("sourceName").value.trim();
+      if (!sourceName) return alert("Enter a source name");
+
+      const currentScene = await callOBS("GetCurrentProgramScene");
+      const sceneName = currentScene.currentProgramSceneName;
+
+      const item = await callOBS("GetSceneItemId", {
+        sceneName,
+        sourceName,
+      });
+
+      const visibility = await callOBS("GetSceneItemEnabled", {
+        sceneName,
+        sceneItemId: item.sceneItemId,
+      });
+
+      await callOBS("SetSceneItemEnabled", {
+        sceneName,
+        sceneItemId: item.sceneItemId,
+        sceneItemEnabled: !visibility.sceneItemEnabled,
+      });
+    }
+
+    loadScenes();
+  </script>
 </body>
 </html>
