@@ -1,98 +1,23 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <title>OBS Control Panel</title>
-  <style>
-    body {
-      font-family: sans-serif;
-      background-color: #121212;
-      color: white;
-      padding: 20px;
-    }
-    button {
-      margin: 5px;
-      padding: 10px 15px;
-      font-size: 1rem;
-    }
-    select {
-      margin-right: 10px;
-      padding: 5px;
-      font-size: 1rem;
-    }
-  </style>
-</head>
+<html>
 <body>
-  <h1>🎛️ OBS Control Panel</h1>
-
-  <div>
-    <label for="sceneSelect">Scenes:</label>
-    <select id="sceneSelect"></select>
-    <button onclick="switchScene()">Switch Scene</button>
-  </div>
-
-  <div style="margin-top:20px;">
-    <input type="text" id="sourceName" placeholder="Source Name" />
-    <button onclick="toggleSource()">Toggle Source Visibility</button>
-  </div>
+  <h1>OBS Access Test</h1>
+  <button onclick="test()">Test Access</button>
 
   <script>
-    async function callOBS(method, data = {}) {
+    async function test() {
       if (!window.obsstudio || !window.obsstudio.call) {
-        alert("OBS control not available. Make sure this is running inside OBS with correct permissions.");
-        throw new Error("OBSStudio API not available.");
+        alert("❌ No OBS access. Check Page Permissions in Browser Source.");
+        return;
       }
 
       try {
-        return await window.obsstudio.call(method, data);
+        const version = await window.obsstudio.call("GetVersion");
+        alert("✅ Connected to OBS: " + version.obsVersion);
       } catch (err) {
-        console.error("OBS API call error:", err);
-        alert("OBS call failed: " + err.message);
+        alert("❌ Failed to call OBS: " + err.message);
       }
     }
-
-    async function loadScenes() {
-      const res = await callOBS("GetSceneList");
-      const select = document.getElementById("sceneSelect");
-
-      res.scenes.forEach(scene => {
-        const option = document.createElement("option");
-        option.value = scene.sceneName;
-        option.textContent = scene.sceneName;
-        select.appendChild(option);
-      });
-    }
-
-    async function switchScene() {
-      const sceneName = document.getElementById("sceneSelect").value;
-      await callOBS("SetCurrentProgramScene", { sceneName });
-    }
-
-    async function toggleSource() {
-      const sourceName = document.getElementById("sourceName").value.trim();
-      if (!sourceName) return alert("Enter a source name");
-
-      const currentScene = await callOBS("GetCurrentProgramScene");
-      const sceneName = currentScene.currentProgramSceneName;
-
-      const item = await callOBS("GetSceneItemId", {
-        sceneName,
-        sourceName,
-      });
-
-      const visibility = await callOBS("GetSceneItemEnabled", {
-        sceneName,
-        sceneItemId: item.sceneItemId,
-      });
-
-      await callOBS("SetSceneItemEnabled", {
-        sceneName,
-        sceneItemId: item.sceneItemId,
-        sceneItemEnabled: !visibility.sceneItemEnabled,
-      });
-    }
-
-    loadScenes();
   </script>
 </body>
 </html>
